@@ -1,23 +1,37 @@
+name: CI/CD
 
-on: push
-name: 🚀 Deploy website on push
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
 jobs:
-  web-deploy:
-    name: 🎉 Deploy
+  build:
+
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [12.x]
+
     steps:
-    - name: 🚚 Get latest code
+    - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Use Node.js 12
-      uses: actions/setup-node@v2-beta
+    - name: Set up Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
       with:
-        node-version: '12'
-      
-    - name: 🔨 Build Project
-      run: |
-        npm install
-        npm run build
+        node-version: ${{ matrix.node-version }}
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Run the tests and generate coverage report
+      run: npm test -- --coverage
+
+    - name: Build
+      run: npm run build
 
     - name: Sync Files001
       uses: SamKirkland/FTP-Deploy-Action@4.1.0
